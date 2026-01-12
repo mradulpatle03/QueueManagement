@@ -6,6 +6,9 @@ const userRouter = require("./routes/auth.route")
 const rateLimit = require("express-rate-limit");
 const errorHandler = require("./middlewares/error.middleware.js");
 dotenv.config();
+
+const adminRouter = require("./routes/admin.routes");
+
 const app = express();
 
 // Middleware
@@ -27,6 +30,7 @@ app.get("/", (req, res) => {
   res.send("Queue Management System Backend Running");
 });
 app.use("/api/auth", userRouter);
+app.use("/api/admin", adminRouter);
 
 
 app.use(errorHandler);
