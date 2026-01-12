@@ -1,8 +1,8 @@
 const jwt = require("jsonwebtoken");
 
-function verifyToken(req, res, next) {
+function protect(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ message: "No token provided" });
+  if (!authHeader || !authHeader.startsWith("Bearer")) return res.status(401).json({ message: "Not Authorized" });
 
   const token = authHeader.split(" ")[1];
   try {
@@ -14,4 +14,4 @@ function verifyToken(req, res, next) {
   }
 }
 
-module.exports = verifyToken;
+module.exports = protect

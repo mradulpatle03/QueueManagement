@@ -1,13 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const { signup, login } = require("../controllers/userController");
-const verifyToken = require("../middlewares/authMiddleware");
+const { register, login } = require("../controllers/auth.controller.js");
+const protect = require("../middlewares/auth.middleware.js");
 
-router.post("/signup", signup);
+router.post("/register", register);
 router.post("/login", login);
 
 // Protected test route
-router.get("/protected", verifyToken, (req, res) => {
+router.get("/protected", protect, (req, res) => {
   res.json({ message: `Welcome ${req.user.role}!`, user: req.user });
 });
 

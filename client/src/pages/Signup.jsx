@@ -13,7 +13,7 @@ function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await instance.post("/api/auth/signup", form);
+    await instance.post("/api/auth/register", form);
     navigate("/login");
   };
 
