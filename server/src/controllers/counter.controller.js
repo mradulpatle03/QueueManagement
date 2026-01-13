@@ -24,7 +24,29 @@ const getCounters = async (req, res, next) => {
   }
 };
 
+const updateCounterStatus = async (req, res, next) => {
+  try {
+    const { counterId } = req.params;
+    const { status } = req.body;
+
+    if (!["ACTIVE", "PAUSED"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const counter = await Counter.findByIdAndUpdate(
+      counterId,
+      { status },
+      { new: true }
+    );
+
+    res.json({ success: true, data: counter });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
     createCounter,
-    getCounters
+    getCounters,
+    updateCounterStatus
 }
