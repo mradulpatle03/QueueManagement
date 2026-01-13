@@ -8,6 +8,7 @@ const errorHandler = require("./middlewares/error.middleware.js");
 dotenv.config();
 
 const adminRouter = require("./routes/admin.routes");
+const tokenRouter = require("./routes/token.routes");
 
 const app = express();
 
@@ -31,14 +32,14 @@ app.get("/", (req, res) => {
 });
 app.use("/api/auth", userRouter);
 app.use("/api/admin", adminRouter);
-
+app.use("/api/tokens", tokenRouter);
 
 app.use(errorHandler);
 
 // MongoDB connection
-// mongoose.connect(process.env.MONGO_URI)
-// .then(() => console.log("MongoDB Connected"))
-// .catch(err => console.log("MongoDB connection error:", err));
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("MongoDB Connected"))
+.catch(err => console.log("MongoDB connection error:", err));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
