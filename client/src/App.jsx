@@ -1,52 +1,48 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Signup from "./pages/Signup";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./auth/AuthContext";
 import Login from "./pages/Login";
-import BusinessDashboard from "./pages/BusinessDashboard";
-import CustomerDashboard from "./pages/CustomerDashboard";
-import ProtectedRoute from "./components/ProtectedRoute";
-import RoleRoute from "./components/RoleRoute";
-import { useSelector } from "react-redux";
+import Register from "./pages/Register";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import StaffDashboard from "./pages/staff/StaffDashboard";
+import CustomerPage from "./pages/customer/CustomerPage";
 
 function App() {
-  const user = useSelector((state) => state.auth.user);
-
-
-  const Root = () => (user ? <Navigate to={`/${user.role}/dashboard`} replace /> : <Navigate to="/login" replace />);
-
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Root />} />
-        <Route path="/register" element={<Signup />} />
-        <Route path="/login" element={<Login />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Protected dashboards */}
-        <Route
-          path="/business/dashboard"
-          element={
-            <ProtectedRoute>
-              <RoleRoute role="business">
-                <BusinessDashboard />
-              </RoleRoute>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/staff"
+            element={
+              <ProtectedRoute allowedRoles={["STAFF"]}>
+                <StaffDashboard />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/customer/dashboard"
-          element={
-            <ProtectedRoute>
-              <RoleRoute role="customer">
-                <CustomerDashboard />
-              </RoleRoute>
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+          <Route
+            path="/customer"
+            element={
+              <ProtectedRoute allowedRoles={["CUSTOMER"]}>
+                <CustomerPage />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
