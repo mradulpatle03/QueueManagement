@@ -1,9 +1,16 @@
-const getServiceQueue = require("../services/queue.service");
+const {getServiceQueue} = require("../services/queue.service");
 const Token = require("../models/token.model");
+const User = require("../models/user.model");
 
 const getStaffQueueView = async (req, res, next) => {
   try {
-    const { serviceId } = req.params;
+    const staff = await User.findById(req.user.id);
+    const serviceId = staff.serviceId;
+
+
+    if (!serviceId) {
+      return res.status(400).json({ message: "Staff not assigned to service" });
+    }
 
     const queue = await getServiceQueue(serviceId);
 

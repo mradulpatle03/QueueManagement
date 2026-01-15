@@ -19,6 +19,7 @@ export default function Register() {
     });
 
     const token = res.data.token;
+    console.log(res.data);
     const payload = JSON.parse(atob(token.split(".")[1]));
     login(token, payload.role);
   };

@@ -10,7 +10,7 @@ export default function Login() {
     e.preventDefault();
     const res = await loginUser(form);
     const token = res.data.token;
-
+    console.log(res.data);
     const payload = JSON.parse(atob(token.split(".")[1]));
     login(token, payload.role);
   };

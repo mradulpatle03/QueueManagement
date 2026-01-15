@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import { getQueue, callNext } from "../../api/staff.api";
+import { useAuth } from "../../auth/AuthContext";
 
 export default function StaffDashboard() {
-  const serviceId = "PUT_SERVICE_ID_HERE"; // temporary
-  const counterId = "PUT_COUNTER_ID_HERE";
+  const { role } = useAuth();
 
   const [queue, setQueue] = useState(null);
 
   const load = async () => {
-    const res = await getQueue(serviceId);
+    const res = await getQueue("me");
     setQueue(res.data.data);
   };
 
   const next = async () => {
-    await callNext({ serviceId, counterId });
+    await callNext({});
     load();
   };
 
