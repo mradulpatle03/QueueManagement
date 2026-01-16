@@ -1,7 +1,11 @@
-const {generateTokenForService,getNextWaitingToken} = require("../services/token.service");
+const {
+  generateTokenForService,
+  getNextWaitingToken,
+} = require("../services/token.service");
 const Counter = require("../models/counter.model");
 const Token = require("../models/token.model");
 const User = require("../models/user.model");
+const { getIO } = require("../socket");
 
 const createToken = async (req, res, next) => {
   try {
@@ -65,6 +69,14 @@ const callNextToken = async (req, res, next) => {
         new: true,
       }
     );
+    const io = getIO();
+    io.emit("token:called", {
+      tokenId: token._id,
+      tokenNumber: token.tokenNumber,
+      serviceId: token.serviceId,
+      counterId: token.counterId,
+      status: token.status,
+    });
 
     if (!token) {
       return res.status(404).json({
@@ -147,9 +159,7 @@ const getTokenStatus = async (req, res, next) => {
         tokenNumber: token.tokenNumber,
         status: token.status,
         peopleAhead,
-        currentlyServing: serving
-          ? serving.tokenNumber
-          : null,
+        currentlyServing: serving ? serving.tokenNumber : null,
       },
     });
   } catch (err) {
@@ -158,9 +168,9 @@ const getTokenStatus = async (req, res, next) => {
 };
 
 module.exports = {
-    createToken,
-    callNextToken,
-    completeToken,
-    skipToken,
-    getTokenStatus
-};  
+  createToken,
+  callNextToken,
+  completeToken,
+  skipToken,
+  getTokenStatus,
+};

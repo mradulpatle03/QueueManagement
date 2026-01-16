@@ -22,6 +22,10 @@ function App() {
       console.log("TOKEN CREATED (LIVE):", data);
     });
 
+    socket.on("token:called", (data) => {
+      console.log("🟢 TOKEN CALLED (LIVE):", data);
+    });
+
     socket.on("disconnect", () => {
       console.log("Socket disconnected");
     });
@@ -30,6 +34,7 @@ function App() {
       socket.off("connect");
       socket.off("disconnect");
       socket.off("token:created");
+      socket.off("token:called");
     };
   }, []);
 
