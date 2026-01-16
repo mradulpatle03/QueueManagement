@@ -13,10 +13,13 @@ import { useEffect } from "react";
 import socket from "./socket";
 
 function App() {
-  
   useEffect(() => {
     socket.on("connect", () => {
       console.log("Connected to socket:", socket.id);
+    });
+
+    socket.on("token:created", (data) => {
+      console.log("TOKEN CREATED (LIVE):", data);
     });
 
     socket.on("disconnect", () => {
@@ -26,6 +29,7 @@ function App() {
     return () => {
       socket.off("connect");
       socket.off("disconnect");
+      socket.off("token:created");
     };
   }, []);
 
@@ -64,7 +68,6 @@ function App() {
             }
           />
           <Route path="*" element={<NotFound />} />
-
         </Routes>
       </BrowserRouter>
     </AuthProvider>
