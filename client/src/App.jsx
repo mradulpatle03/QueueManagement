@@ -9,8 +9,26 @@ import CustomerPage from "./pages/customer/CustomerPage";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 import Home from "./pages/Home";
+import { useEffect } from "react";
+import socket from "./socket";
 
 function App() {
+  
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("Connected to socket:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <BrowserRouter>
