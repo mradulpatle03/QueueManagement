@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../api/auth.api";
 import { useAuth } from "../auth/AuthContext";
 
 export default function Login() {
+  const navigate = useNavigate();
   const { login } = useAuth();
   const [form, setForm] = useState({
     email: "",
@@ -28,6 +29,9 @@ export default function Login() {
       const token = res.data.token;
       const payload = JSON.parse(atob(token.split(".")[1]));
       login(token, payload.role);
+      if (payload.role === "ADMIN") navigate("/admin");
+      else if (payload.role === "STAFF") navigate("/staff");
+      else navigate("/customer");
     } catch (err) {
       setError(
         err.response?.data?.message || "Invalid email or password"

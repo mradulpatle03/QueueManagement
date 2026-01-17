@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../api/auth.api";
 import { useAuth } from "../auth/AuthContext";
 
 export default function Register() {
+  const navigate = useNavigate();
   const { login } = useAuth();
   const [form, setForm] = useState({
     name: "",
@@ -33,6 +34,7 @@ export default function Register() {
       const token = res.data.token;
       const payload = JSON.parse(atob(token.split(".")[1]));
       login(token, payload.role);
+      navigate("/customer");
     } catch (err) {
       setError(
         err.response?.data?.message || "Something went wrong"

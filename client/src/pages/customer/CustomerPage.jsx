@@ -50,6 +50,8 @@ export default function CustomerPage() {
       {token && (
         <div className="mt-4">
           <p>Token: {token.tokenNumber}</p>
+          <p>Status: {token.status}</p>
+          {token.status === "SERVING" && <p>Go to Counter {token.counterId}</p>}
           <button onClick={refresh} className="underline">
             Refresh Status
           </button>

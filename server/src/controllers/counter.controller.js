@@ -45,8 +45,24 @@ const updateCounterStatus = async (req, res, next) => {
   }
 };
 
+const getCountersByService = async (req, res) => {
+  try {
+    const { serviceId } = req.params;
+
+    const counters = await Counter.find({
+      serviceId: serviceId,
+      status: "ACTIVE",
+    });
+
+    res.json({ success: true, data: counters });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
     createCounter,
     getCounters,
-    updateCounterStatus
+    updateCounterStatus,
+    getCountersByService
 }

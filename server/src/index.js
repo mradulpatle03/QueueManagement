@@ -10,6 +10,7 @@ dotenv.config();
 const adminRouter = require("./routes/admin.routes");
 const tokenRouter = require("./routes/token.routes");
 const queueRouter = require("./routes/queue.routes");
+const counterRouter = require("./routes/counter.routes");
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use("/api/auth", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/tokens", tokenRouter);
 app.use("/api/queue", queueRouter);
+app.use("/api/counters",counterRouter);
 
 app.use(errorHandler);
 
