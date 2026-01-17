@@ -23,7 +23,11 @@ function App() {
     });
 
     socket.on("token:called", (data) => {
-      console.log("🟢 TOKEN CALLED (LIVE):", data);
+      console.log("TOKEN CALLED (LIVE):", data);
+    });
+
+    socket.on("token:completed", (data) => {
+      console.log("TOKEN COMPLETED (LIVE):", data);
     });
 
     socket.on("disconnect", () => {
@@ -35,6 +39,7 @@ function App() {
       socket.off("disconnect");
       socket.off("token:created");
       socket.off("token:called");
+      socket.off("token:completed");
     };
   }, []);
 

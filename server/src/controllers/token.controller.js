@@ -94,20 +94,35 @@ const callNextToken = async (req, res, next) => {
 };
 
 const completeToken = async (req, res, next) => {
-  const token = await Token.findOneAndUpdate(
-    {
-      _id: req.params.tokenId,
-      status: "SERVING",
-    },
-    { status: "COMPLETED", completedAt: new Date() },
-    { new: true }
-  );
+   try {
+    const tokenId = req.params.tokenId;
 
-  if (!token) {
-    return res.status(400).json({ message: "Invalid token state" });
+    const token = await Token.findById(tokenId);
+    if (!token || token.status !== "SERVING") {
+      return res.status(400).json({ message: "Invalid token" });
+    }
+
+    token.status = "COMPLETED";
+    token.completedAt = new Date();
+    await token.save();
+
+    // free counter
+    await Counter.findByIdAndUpdate(token.counterId, {
+      status: "ACTIVE",
+    });
+    const io = getIO();
+    io.emit("token:completed", {
+      tokenId: token._id,
+      tokenNumber: token.tokenNumber,
+      serviceId: token.serviceId,
+      counterId: token.counterId,
+      status: token.status,
+    });
+
+    res.json({ success: true, data: token });
+  } catch (err) {
+    next(err);
   }
-
-  res.json({ success: true, data: token });
 };
 
 const skipToken = async (req, res, next) => {
