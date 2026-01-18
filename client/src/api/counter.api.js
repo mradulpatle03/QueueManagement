@@ -1,10 +1,6 @@
-const api = require("./axios");
+import api from "./axios";
 
-const getCountersByService = async (serviceId) => {
+export const getCountersByService = async (serviceId) => {
   const res = await api.get(`/counters/service/${serviceId}`);
-  return res.data;
-};
-
-module.exports = {
-  getCountersByService,
+  return res.data.data;
 };

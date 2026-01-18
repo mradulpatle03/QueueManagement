@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getServices } from "../../api/service.api";
+import { getServices } from "../../api/admin.api";
 import { useNavigate } from "react-router-dom";
 
 const SelectService = () => {

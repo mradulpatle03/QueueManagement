@@ -1,21 +1,13 @@
-const api = require("./axios");
+import api from "./axios";
 
-const callNextToken = async (serviceId, counterId) => {
-  const res = await api.post("/tokens/call-next", {
-    serviceId,
+export const callNextToken = async (counterId) => {
+  const res = await api.post("/queue/next", {
     counterId,
   });
   return res.data;
 };
 
-const completeToken = async (tokenId) => {
-  const res = await api.post("/tokens/complete", {
-    tokenId,
-  });
+export const completeToken = async (tokenId) => {
+  const res = await api.patch(`/tokens/${tokenId}/complete`);
   return res.data;
-};
-
-module.exports = {
-  callNextToken,
-  completeToken,
 };

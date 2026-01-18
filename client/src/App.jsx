@@ -11,6 +11,8 @@ import NotFound from "./pages/NotFound";
 import Home from "./pages/Home";
 import { useEffect } from "react";
 import socket from "./socket";
+import SelectService from "./pages/staff/SelectService";
+import SelectCounter from "./pages/staff/SelectCounter";
 
 function App() {
   useEffect(() => {
@@ -59,9 +61,11 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/staff" element={<SelectService />} />
+          <Route path="/staff/counter/:serviceId" element={<SelectCounter />} />
 
           <Route
-            path="/staff"
+            path="/staff/dashboard/:serviceId/:counterId"
             element={
               <ProtectedRoute allowedRoles={["STAFF"]}>
                 <StaffDashboard />

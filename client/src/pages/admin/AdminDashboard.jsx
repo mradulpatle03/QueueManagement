@@ -3,6 +3,8 @@ import {
   getServices,
   createService,
 } from "../../api/admin.api";
+import CreateStaff from "./CreateStaff";
+import CreateCounter from "./CreateCounter";
 
 export default function AdminDashboard() {
   const [services, setServices] = useState([]);
@@ -13,8 +15,8 @@ export default function AdminDashboard() {
   }, []);
 
   const load = async () => {
-    const res = await getServices();
-    setServices(res.data.data);
+    const data = await getServices();
+    setServices(data);
   };
 
   const addService = async () => {
@@ -44,6 +46,9 @@ export default function AdminDashboard() {
           <li key={s._id}>{s.name}</li>
         ))}
       </ul>
+
+      <CreateStaff />
+      <CreateCounter />
     </div>
   );
 }

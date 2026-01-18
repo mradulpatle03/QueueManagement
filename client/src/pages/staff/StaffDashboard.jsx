@@ -1,46 +1,60 @@
+import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getQueue, callNext } from "../../api/staff.api";
-import { useAuth } from "../../auth/AuthContext";
+import socket from "../../socket";
+import {
+  callNextToken,
+  completeToken,
+} from "../../api/token.api";
 
-export default function StaffDashboard() {
-  const { role } = useAuth();
-
-  const [queue, setQueue] = useState(null);
-
-  const load = async () => {
-    const res = await getQueue("me");
-    setQueue(res.data.data);
-  };
-
-  const next = async () => {
-    await callNext({});
-    load();
-  };
+const StaffDashboard = () => {
+  const { serviceId, counterId } = useParams();
+  const [currentToken, setCurrentToken] = useState(null);
 
   useEffect(() => {
-    load();
-  }, []);
+    socket.emit("join:service", serviceId);
+
+    socket.on("token:called", (data) => {
+      if (data.counterId === counterId) {
+        setCurrentToken(data);
+      }
+    });
+
+    socket.on("token:completed", (data) => {
+      if (data.counterId === counterId) {
+        setCurrentToken(null);
+      }
+    });
+
+    return () => {
+      socket.off("token:called");
+      socket.off("token:completed");
+    };
+  }, [serviceId, counterId]);
+
+  const handleCallNext = async () => {
+    const res = await callNextToken(counterId);
+    setCurrentToken(res.data);
+  };
+
+  const handleComplete = async () => {
+    completeToken(currentToken._id);
+    setCurrentToken(null);
+  };
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl mb-4">Staff Queue</h2>
+    <div>
+      <h2>Staff Dashboard</h2>
 
-      <button onClick={next} className="bg-black text-white px-4 mb-4">
-        Call Next
-      </button>
-
-      <div>
-        <p>
-          Serving: {queue?.serving?.tokenNumber || "None"}
-        </p>
-
-        <h4 className="mt-4">Waiting</h4>
-        <ul>
-          {queue?.waiting?.map((t) => (
-            <li key={t._id}>Token {t.tokenNumber}</li>
-          ))}
-        </ul>
-      </div>
+      {currentToken ? (
+        <>
+          <h3>Serving Token #{currentToken.tokenNumber}</h3>
+          <button onClick={handleComplete}>Complete</button>
+        </>
+      ) : (
+        <button onClick={handleCallNext}>Call Next</button>
+      )}
     </div>
   );
-}
+};
+
+export default StaffDashboard;
