@@ -1,23 +1,15 @@
-import { useEffect, useState } from "react";
-import {getServices,createCounter } from "../../api/admin.api";
+import { useState } from "react";
+import { createCounter } from "../../api/admin.api";
 
-const CreateCounter = () => {
-  const [services, setServices] = useState([]);
+const CreateCounter = ({ services }) => {
   const [form, setForm] = useState({
     name: "",
     serviceId: "",
   });
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    getServices().then(setServices);
-  }, []);
-
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
@@ -27,11 +19,7 @@ const CreateCounter = () => {
     try {
       await createCounter(form);
       alert("Counter created successfully");
-
-      setForm({
-        name: "",
-        serviceId: "",
-      });
+      setForm({ name: "", serviceId: "" });
     } catch (err) {
       alert(err.response?.data?.message || "Failed to create counter");
     } finally {
@@ -40,37 +28,62 @@ const CreateCounter = () => {
   };
 
   return (
-    <div style={{ maxWidth: 400 }}>
-      <h2>Create Counter</h2>
+    <section className="max-w-md">
+      <h2 className="text-lg font-medium text-neutral-800 mb-4">
+        Create Counter
+      </h2>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          name="name"
-          placeholder="Counter Name"
-          value={form.name}
-          onChange={handleChange}
-          required
-        />
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white border border-neutral-300 p-6 space-y-4"
+      >
+        <div>
+          <label className="block text-sm text-neutral-700 mb-1">
+            Counter Name
+          </label>
+          <input
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            required
+            className="w-full border border-neutral-400 px-3 py-2 focus:outline-none"
+          />
+        </div>
 
-        <select
+        <div>
+          <label className="block text-sm text-neutral-700 mb-1">
+            Service
+          </label>
+          <select
           name="serviceId"
           value={form.serviceId}
           onChange={handleChange}
           required
+          className="w-full border px-3 py-2"
         >
-          <option value="">Select Service</option>
+          <option value="">Select service</option>
           {services.map((s) => (
             <option key={s._id} value={s._id}>
               {s.name}
             </option>
           ))}
         </select>
+        </div>
 
-        <button type="submit" disabled={loading}>
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full px-4 py-2 text-sm uppercase tracking-wide
+            ${
+              loading
+                ? "bg-neutral-400 cursor-not-allowed"
+                : "bg-neutral-900 text-white hover:bg-neutral-800"
+            }`}
+        >
           {loading ? "Creating..." : "Create Counter"}
         </button>
       </form>
-    </div>
+    </section>
   );
 };
 

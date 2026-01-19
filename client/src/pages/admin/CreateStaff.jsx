@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-import { getServices,createStaff } from "../../api/admin.api";
+import { useState } from "react";
+import { createStaff } from "../../api/admin.api";
 
-const CreateStaff = () => {
-  const [services, setServices] = useState([]);
+const CreateStaff = ({ services }) => {
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -11,15 +10,8 @@ const CreateStaff = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    getServices().then(setServices);
-  }, []);
-
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
@@ -29,7 +21,6 @@ const CreateStaff = () => {
     try {
       await createStaff(form);
       alert("Staff created successfully");
-
       setForm({
         name: "",
         email: "",
@@ -44,55 +35,88 @@ const CreateStaff = () => {
   };
 
   return (
-    <div style={{ maxWidth: 400 }}>
-      <h2>Create Staff</h2>
+    <section className="max-w-md">
+      <h2 className="text-lg font-medium text-neutral-800 mb-4">
+        Create Staff
+      </h2>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          name="name"
-          placeholder="Name"
-          value={form.name}
-          onChange={handleChange}
-          required
-        />
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white border border-neutral-300 p-6 space-y-4"
+      >
+        <div>
+          <label className="block text-sm text-neutral-700 mb-1">
+            Full Name
+          </label>
+          <input
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            required
+            className="w-full border border-neutral-400 px-3 py-2 focus:outline-none"
+          />
+        </div>
 
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
-          required
-        />
+        <div>
+          <label className="block text-sm text-neutral-700 mb-1">Email</label>
+          <input
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+            required
+            className="w-full border border-neutral-400 px-3 py-2 focus:outline-none"
+          />
+        </div>
 
-        <input
-          name="password"
-          type="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
-          required
-        />
+        <div>
+          <label className="block text-sm text-neutral-700 mb-1">
+            Password
+          </label>
+          <input
+            name="password"
+            type="password"
+            value={form.password}
+            onChange={handleChange}
+            required
+            className="w-full border border-neutral-400 px-3 py-2 focus:outline-none"
+          />
+        </div>
 
-        <select
-          name="serviceId"
-          value={form.serviceId}
-          onChange={handleChange}
-          required
+        <div>
+          <label className="block text-sm text-neutral-700 mb-1">
+            Service Assignment
+          </label>
+          <select
+            name="serviceId"
+            value={form.serviceId}
+            onChange={handleChange}
+            required
+            className="w-full border px-3 py-2"
+          >
+            <option value="">Select service</option>
+            {services.map((s) => (
+              <option key={s._id} value={s._id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full px-4 py-2 text-sm uppercase tracking-wide
+            ${
+              loading
+                ? "bg-neutral-400 cursor-not-allowed"
+                : "bg-neutral-900 text-white hover:bg-neutral-800"
+            }`}
         >
-          <option value="">Select Service</option>
-          {services.map((s) => (
-            <option key={s._id} value={s._id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-
-        <button type="submit" disabled={loading}>
           {loading ? "Creating..." : "Create Staff"}
         </button>
       </form>
-    </div>
+    </section>
   );
 };
 

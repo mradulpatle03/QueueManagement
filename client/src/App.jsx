@@ -14,6 +14,10 @@ import socket from "./socket";
 import SelectService from "./pages/staff/SelectService";
 import SelectCounter from "./pages/staff/SelectCounter";
 
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import DisplayScreen from "./pages/display/DisplayScreen";
+
 function App() {
   useEffect(() => {
     socket.on("connect", () => {
@@ -81,8 +85,19 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/display" element={<DisplayScreen />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          pauseOnHover
+          draggable
+          theme="light"
+        />
       </BrowserRouter>
     </AuthProvider>
   );
