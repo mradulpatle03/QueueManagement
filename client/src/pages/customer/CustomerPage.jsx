@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
-import { takeToken, getStatus } from "../../api/customer.api";
+import socket from "../../socket";
+import { takeToken } from "../../api/customer.api";
 
 export default function CustomerPage() {
   const [services, setServices] = useState([]);
   const [serviceId, setServiceId] = useState("");
   const [token, setToken] = useState(null);
-  const [status, setStatus] = useState(null);
 
   useEffect(() => {
     api.get("/admin/services").then((res) => {
@@ -14,14 +14,46 @@ export default function CustomerPage() {
     });
   }, []);
 
+  // 🔥 SOCKET LISTENERS
+  useEffect(() => {
+  const onCalled = (data) => {
+    setToken((prev) => {
+      if (!prev) return prev;
+      if (data.tokenId !== prev._id) return prev;
+
+      return {
+        ...prev,
+        status: data.status,
+        counterId: data.counterId,
+      };
+    });
+  };
+
+  const onCompleted = (data) => {
+    setToken((prev) => {
+      if (!prev) return prev;
+      if (data.tokenId !== prev._id) return prev;
+
+      return {
+        ...prev,
+        status: data.status,
+      };
+    });
+  };
+
+  socket.on("token:called", onCalled);
+  socket.on("token:completed", onCompleted);
+
+  return () => {
+    socket.off("token:called", onCalled);
+    socket.off("token:completed", onCompleted);
+  };
+}, []);
+
+
   const create = async () => {
     const res = await takeToken({ serviceId });
     setToken(res.data.data);
-  };
-
-  const refresh = async () => {
-    const res = await getStatus(token._id);
-    setStatus(res.data.data);
   };
 
   return (
@@ -37,6 +69,7 @@ export default function CustomerPage() {
           </option>
         ))}
       </select>
+
       <button
         onClick={create}
         disabled={!serviceId}
@@ -51,16 +84,9 @@ export default function CustomerPage() {
         <div className="mt-4">
           <p>Token: {token.tokenNumber}</p>
           <p>Status: {token.status}</p>
-          {token.status === "SERVING" && <p>Go to Counter {token.counterId}</p>}
-          <button onClick={refresh} className="underline">
-            Refresh Status
-          </button>
 
-          {status && (
-            <div>
-              <p>People ahead: {status.peopleAhead}</p>
-              <p>Serving: {status.currentlyServing}</p>
-            </div>
+          {token.status === "SERVING" && (
+            <p>Go to Counter {token.counterId}</p>
           )}
         </div>
       )}
