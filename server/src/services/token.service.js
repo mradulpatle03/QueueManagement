@@ -1,5 +1,6 @@
 const Token = require("../models/token.model");
 const { getIO } = require("../socket");
+const redis = require("../config/redis");
 
 const generateTokenForService = async (serviceId, priority = 0) => {
   const lastToken = await Token.findOne({ serviceId })
@@ -13,6 +14,11 @@ const generateTokenForService = async (serviceId, priority = 0) => {
     tokenNumber: nextNumber,
     priority,
   });
+
+  await redis.rpush(`queue:service:${serviceId}`, token._id.toString());
+  const len = await redis.llen(`queue:service:${serviceId}`);
+  console.log("Queue length:", len);
+
   const io = getIO();
 
   io.emit("token:created", {
