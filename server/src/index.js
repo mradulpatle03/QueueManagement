@@ -11,6 +11,8 @@ const adminRouter = require("./routes/admin.routes");
 const tokenRouter = require("./routes/token.routes");
 const queueRouter = require("./routes/queue.routes");
 const counterRouter = require("./routes/counter.routes");
+const redis = require("./config/redis.js");
+const redisQueueRouter = require("./routes/redisQueue.routes.js");
 
 const app = express();
 
@@ -37,6 +39,7 @@ app.use("/api/admin", adminRouter);
 app.use("/api/tokens", tokenRouter);
 app.use("/api/queue", queueRouter);
 app.use("/api/counters",counterRouter);
+app.use("/api/redis-queue", redisQueueRouter);
 
 app.use(errorHandler);
 

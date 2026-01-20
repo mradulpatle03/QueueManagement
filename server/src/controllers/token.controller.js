@@ -6,6 +6,7 @@ const Counter = require("../models/counter.model");
 const Token = require("../models/token.model");
 const User = require("../models/user.model");
 const { getIO } = require("../socket");
+const redis = require("../config/redis");
 
 const createToken = async (req, res, next) => {
   try {
@@ -24,16 +25,18 @@ const createToken = async (req, res, next) => {
 
 const callNextToken = async (req, res, next) => {
   try {
+    // Get staff & service
     const staff = await User.findById(req.user.id);
-    const staffServiceId = staff.serviceId;
+    const serviceId = staff.serviceId;
     const { counterId } = req.body;
 
-    if (!staffServiceId) {
+    if (!serviceId) {
       return res.status(400).json({
         message: "Staff not assigned to any service",
       });
     }
 
+    // Validate counter
     const counter = await Counter.findById(counterId);
     if (!counter || counter.status === "PAUSED") {
       return res.status(400).json({
@@ -41,34 +44,37 @@ const callNextToken = async (req, res, next) => {
       });
     }
 
-    // Check if already serving
-    const active = await Token.findOne({
-      serviceId: staffServiceId,
-      status: "SERVING",
-    });
+    // Check if this counter is already serving
+    const servingKey = `serving:counter:${counterId}`;
+    const activeTokenId = await redis.get(servingKey);
 
-    if (active) {
+    if (activeTokenId) {
       return res.status(400).json({
         message: "Finish current token first",
       });
     }
 
-    // ATOMIC OPERATION
-    const token = await Token.findOneAndUpdate(
-      {
-        serviceId: staffServiceId,
-        status: "WAITING",
-      },
-      {
-        status: "SERVING",
-        counterId,
-        servedAt: new Date(),
-      },
-      {
-        sort: { createdAt: 1 },
-        new: true,
-      }
-    );
+    // Pop next token from Redis queue
+    const queueKey = `queue:service:${serviceId}`;
+    const tokenId = await redis.lpop(queueKey);
+
+    if (!tokenId) {
+      return res.status(404).json({
+        message: "No waiting tokens",
+      });
+    }
+
+    // Update token in Mongo
+    const token = await Token.findById(tokenId);
+    token.status = "SERVING";
+    token.counterId = counterId;
+    token.servedAt = new Date();
+    await token.save();
+
+    // Mark counter as busy in Redis
+    await redis.set(servingKey, tokenId);
+
+    // Emit socket event
     const io = getIO();
     io.emit("token:called", {
       tokenId: token._id,
@@ -77,12 +83,6 @@ const callNextToken = async (req, res, next) => {
       counterId: token.counterId,
       status: token.status,
     });
-
-    if (!token) {
-      return res.status(404).json({
-        message: "No waiting tokens",
-      });
-    }
 
     res.json({
       success: true,
