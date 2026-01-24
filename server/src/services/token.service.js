@@ -27,6 +27,7 @@ const generateTokenForService = async (serviceId, priority = 0) => {
     serviceId: token.serviceId,
     status: token.status,
   });
+  io.emit("queue:updated", { serviceId });
 
   return token;
 };

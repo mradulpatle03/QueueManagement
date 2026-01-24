@@ -7,6 +7,7 @@ export default function CustomerPage() {
   const [services, setServices] = useState([]);
   const [serviceId, setServiceId] = useState("");
   const [token, setToken] = useState(null);
+  const [queueStatus, setQueueStatus] = useState(null);
 
   useEffect(() => {
     api.get("/admin/services").then((res) => {
@@ -40,18 +41,38 @@ export default function CustomerPage() {
       });
     };
 
+    const onQueueUpdated = (data) => {
+      if (!token) return;
+      if (data.serviceId === token.serviceId) {
+        fetchQueueStatus(token);
+      }
+    };
+
     socket.on("token:called", onCalled);
     socket.on("token:completed", onCompleted);
+    socket.on("queue:updated", onQueueUpdated);
 
     return () => {
       socket.off("token:called", onCalled);
       socket.off("token:completed", onCompleted);
+      socket.off("queue:updated", onQueueUpdated);
     };
   }, []);
+
+  const fetchQueueStatus = async (tkn) => {
+    if (!tkn) return;
+
+    const res = await api.get(
+      `/redis-queue/status/${tkn.serviceId}/${tkn._id}`,
+    );
+
+    setQueueStatus(res.data.data);
+  };
 
   const create = async () => {
     const res = await takeToken({ serviceId });
     setToken(res.data.data);
+    fetchQueueStatus(res.data.data);
   };
 
   return (
@@ -122,6 +143,24 @@ export default function CustomerPage() {
 
             {/* STATUS FOOTER */}
             <div className="border-t border-neutral-300 px-6 py-4">
+              
+              {queueStatus && token.status === "WAITING" && (
+                <div className="mb-3 text-sm text-neutral-600">
+                  <p>
+                    People ahead:{" "}
+                    <span className="font-medium">
+                      {queueStatus.peopleAhead}
+                    </span>
+                  </p>
+                  <p>
+                    Currently serving:{" "}
+                    <span className="font-medium">
+                      {queueStatus.currentlyServing || "-"}
+                    </span>
+                  </p>
+                </div>
+              )}
+
               {token.status === "SERVING" ? (
                 <p className="text-sm font-medium text-neutral-900">
                   Please proceed to counter{" "}

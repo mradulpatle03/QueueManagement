@@ -83,6 +83,7 @@ const callNextToken = async (req, res, next) => {
       counterId: token.counterId,
       status: token.status,
     });
+    io.emit("queue:updated", { serviceId });
 
     res.json({
       success: true,
