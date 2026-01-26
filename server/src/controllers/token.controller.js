@@ -94,23 +94,64 @@ const callNextToken = async (req, res, next) => {
   }
 };
 
+// const completeToken = async (req, res, next) => {
+//    try {
+//     const tokenId = req.params.tokenId;
+
+//     const token = await Token.findById(tokenId);
+//     if (!token || token.status !== "SERVING") {
+//       return res.status(400).json({ message: "Invalid token" });
+//     }
+
+//     token.status = "COMPLETED";
+//     token.completedAt = new Date();
+//     await token.save();
+
+//     // free counter
+//     await Counter.findByIdAndUpdate(token.counterId, {
+//       status: "ACTIVE",
+//     });
+//     const io = getIO();
+//     io.emit("token:completed", {
+//       tokenId: token._id,
+//       tokenNumber: token.tokenNumber,
+//       serviceId: token.serviceId,
+//       counterId: token.counterId,
+//       status: token.status,
+//     });
+
+//     res.json({ success: true, data: token });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
 const completeToken = async (req, res, next) => {
-   try {
-    const tokenId = req.params.tokenId;
+  try {
+    const { counterId } = req.body;
+
+    const servingKey = `serving:counter:${counterId}`;
+    const tokenId = await redis.get(servingKey);
+
+    if (!tokenId) {
+      return res.status(400).json({
+        message: "No active token on this counter",
+      });
+    }
 
     const token = await Token.findById(tokenId);
     if (!token || token.status !== "SERVING") {
-      return res.status(400).json({ message: "Invalid token" });
+      return res.status(400).json({
+        message: "Invalid token state",
+      });
     }
 
     token.status = "COMPLETED";
     token.completedAt = new Date();
     await token.save();
 
-    // free counter
-    await Counter.findByIdAndUpdate(token.counterId, {
-      status: "ACTIVE",
-    });
+    await redis.del(servingKey);
+
     const io = getIO();
     io.emit("token:completed", {
       tokenId: token._id,
@@ -120,24 +161,69 @@ const completeToken = async (req, res, next) => {
       status: token.status,
     });
 
+    io.emit("queue:updated", {
+      serviceId: token.serviceId,
+    });
+
     res.json({ success: true, data: token });
   } catch (err) {
     next(err);
   }
 };
 
+// const skipToken = async (req, res, next) => {
+//   try {
+//     const { tokenId } = req.params;
+
+//     const token = await Token.findById(tokenId);
+
+//     if (!token || token.status !== "SERVING") {
+//       return res.status(400).json({ message: "Invalid token state" });
+//     }
+
+//     token.status = "SKIPPED";
+//     await token.save();
+
+//     res.json({ success: true, data: token });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
 const skipToken = async (req, res, next) => {
   try {
-    const { tokenId } = req.params;
+    const { counterId } = req.body;
+
+    const servingKey = `serving:counter:${counterId}`;
+    const tokenId = await redis.get(servingKey);
+
+    if (!tokenId) {
+      return res.status(400).json({
+        message: "No active token to skip",
+      });
+    }
 
     const token = await Token.findById(tokenId);
-
     if (!token || token.status !== "SERVING") {
-      return res.status(400).json({ message: "Invalid token state" });
+      return res.status(400).json({
+        message: "Invalid token state",
+      });
     }
 
     token.status = "SKIPPED";
     await token.save();
+
+    await redis.del(servingKey);
+
+    const io = getIO();
+    io.emit("token:skipped", {
+      tokenId: token._id,
+      serviceId: token.serviceId,
+    });
+
+    io.emit("queue:updated", {
+      serviceId: token.serviceId,
+    });
 
     res.json({ success: true, data: token });
   } catch (err) {
@@ -183,10 +269,30 @@ const getTokenStatus = async (req, res, next) => {
   }
 };
 
+const toggleCounter = async (req, res, next) => {
+  try {
+    const { counterId } = req.body;
+
+    const counter = await Counter.findById(counterId);
+    counter.status =
+      counter.status === "PAUSED" ? "ACTIVE" : "PAUSED";
+
+    await counter.save();
+
+    res.json({
+      success: true,
+      data: counter,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createToken,
   callNextToken,
   completeToken,
   skipToken,
   getTokenStatus,
+  toggleCounter,
 };
